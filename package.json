@@ -1,0 +1,15 @@
+{
+  "name": "discord-economy-bot",
+  "version": "1.0.0",
+  "description": "Discord economy bot with games and shop",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "register": "node src/deploy-commands.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "discord.js": "^14.25.1"
+  }
+}
