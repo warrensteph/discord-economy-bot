@@ -46,22 +46,44 @@ export async function execute(interaction) {
     removeBalance(interaction.user.id, item.price);
     addItem(interaction.user.id, item);
 
+    let roleAssigned = false;
+    let roleError = null;
+
     if (item.type === 'role' && item.roleId) {
       try {
         const role = interaction.guild.roles.cache.get(item.roleId);
         
         if (role) {
-          await interaction.member.roles.add(role);
+          const botMember = interaction.guild.members.cache.get(interaction.client.user.id);
+          
+          if (botMember.roles.highest.position <= role.position) {
+            roleError = 'Bot role is too low to assign this role. Please move the bot role higher in the server settings.';
+          } else if (interaction.member.roles.cache.has(role.id)) {
+            roleAssigned = true;
+          } else {
+            await interaction.member.roles.add(role);
+            roleAssigned = true;
+          }
+        } else {
+          roleError = 'Role no longer exists on this server.';
         }
       } catch (error) {
         console.error('Failed to assign role:', error);
+        roleError = 'Failed to assign role. Make sure the bot has the "Manage Roles" permission.';
       }
     }
 
-    const embed = successEmbed(
-      'Purchase Successful!',
-      `You bought **${rarityEmoji(item.rarity)} ${item.name}** for **${formatCoins(item.price)}**!\n\nNew balance: **${formatCoins(user.balance - item.price)}**`
-    );
+    let description = `You bought **${rarityEmoji(item.rarity)} ${item.name}** for **${formatCoins(item.price)}**!\n\nNew balance: **${formatCoins(user.balance - item.price)}**`;
+    
+    if (item.type === 'role') {
+      if (roleAssigned) {
+        description += `\n\n**Role granted!** You now have the **${item.name}** role!`;
+      } else if (roleError) {
+        description += `\n\n**Warning:** ${roleError}`;
+      }
+    }
+
+    const embed = successEmbed('Purchase Successful!', description);
 
     return interaction.reply({ embeds: [embed] });
   }

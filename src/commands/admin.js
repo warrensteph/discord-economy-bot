@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { getUser, updateUser, addBalance, addItem, getShopItems } from '../utils/database.js';
+import { getUser, updateUser, addBalance, addItem, getShopItems, addShopRole, removeShopRole } from '../utils/database.js';
 import { formatCoins, successEmbed, errorEmbed, rarityEmoji } from '../utils/helpers.js';
 
 const OWNER_ID = '1225731448833839184';
@@ -95,7 +95,47 @@ export const data = new SlashCommandBuilder()
       .addStringOption(option =>
         option.setName('message')
           .setDescription('Message to broadcast')
-          .setRequired(true)));
+          .setRequired(true)))
+  .addSubcommand(subcommand =>
+    subcommand
+      .setName('addrole')
+      .setDescription('Add a role to the shop')
+      .addRoleOption(option =>
+        option.setName('role')
+          .setDescription('The Discord role to add')
+          .setRequired(true))
+      .addIntegerOption(option =>
+        option.setName('price')
+          .setDescription('Price in coins')
+          .setMinValue(1)
+          .setRequired(true))
+      .addStringOption(option =>
+        option.setName('description')
+          .setDescription('Role description')
+          .setRequired(false))
+      .addStringOption(option =>
+        option.setName('rarity')
+          .setDescription('Role rarity')
+          .setRequired(false)
+          .addChoices(
+            { name: 'Common', value: 'common' },
+            { name: 'Uncommon', value: 'uncommon' },
+            { name: 'Rare', value: 'rare' },
+            { name: 'Epic', value: 'epic' },
+            { name: 'Legendary', value: 'legendary' }
+          )))
+  .addSubcommand(subcommand =>
+    subcommand
+      .setName('removerole')
+      .setDescription('Remove a role from the shop')
+      .addStringOption(option =>
+        option.setName('roleid')
+          .setDescription('The role ID or item ID to remove')
+          .setRequired(true)))
+  .addSubcommand(subcommand =>
+    subcommand
+      .setName('listroles')
+      .setDescription('List all roles in the shop'));
 
 function isOwner(userId) {
   return userId === OWNER_ID;
@@ -325,6 +365,79 @@ export async function execute(interaction) {
       
       await interaction.channel.send({ embeds: [embed] });
       await interaction.reply({ content: 'Broadcast sent!', ephemeral: true });
+      break;
+    }
+    
+    case 'addrole': {
+      const role = interaction.options.getRole('role');
+      const price = interaction.options.getInteger('price');
+      const description = interaction.options.getString('description') || `Unlock the ${role.name} role`;
+      const rarity = interaction.options.getString('rarity') || 'common';
+      
+      const roleData = {
+        id: `role_${role.name.toLowerCase().replace(/\s+/g, '_')}`,
+        name: role.name,
+        description: description,
+        price: price,
+        type: 'role',
+        rarity: rarity,
+        roleId: role.id
+      };
+      
+      addShopRole(roleData);
+      
+      const embed = successEmbed(
+        'Role Added to Shop!',
+        `**${rarityEmoji(rarity)} ${role.name}** has been added to the shop!\n\nPrice: **${formatCoins(price)}**\nRarity: **${rarity}**\nRole ID: \`${role.id}\``
+      );
+      
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      break;
+    }
+    
+    case 'removerole': {
+      const roleId = interaction.options.getString('roleid');
+      const removed = removeShopRole(roleId);
+      
+      if (!removed) {
+        return interaction.reply({
+          embeds: [errorEmbed('Role Not Found', 'That role is not in the shop. Use `/admin listroles` to see available roles.')],
+          ephemeral: true
+        });
+      }
+      
+      const embed = new EmbedBuilder()
+        .setTitle('Role Removed from Shop!')
+        .setDescription(`**${removed.name}** has been removed from the shop.`)
+        .setColor(0xFF0000)
+        .setTimestamp();
+      
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      break;
+    }
+    
+    case 'listroles': {
+      const shop = getShopItems();
+      
+      if (shop.roles.length === 0) {
+        return interaction.reply({
+          embeds: [errorEmbed('No Roles', 'There are no roles in the shop.')],
+          ephemeral: true
+        });
+      }
+      
+      const roleList = shop.roles.map(r => 
+        `${rarityEmoji(r.rarity)} **${r.name}** - ${formatCoins(r.price)}\nID: \`${r.id}\` | Discord Role: \`${r.roleId}\``
+      ).join('\n\n');
+      
+      const embed = new EmbedBuilder()
+        .setTitle('Shop Roles')
+        .setDescription(roleList)
+        .setColor(0x5865F2)
+        .setFooter({ text: 'Use /admin removerole <id> to remove a role' })
+        .setTimestamp();
+      
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       break;
     }
   }

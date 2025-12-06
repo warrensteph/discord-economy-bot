@@ -31,14 +31,14 @@ export async function execute(interaction) {
   const { reward, streak } = claimDaily(interaction.user.id);
   const user = getUser(interaction.user.id);
 
-  const streakBonus = Math.min(streak * 10, 100);
+  const streakBonus = Math.min(streak * 5, 50);
   
   const embed = new EmbedBuilder()
     .setTitle('Daily Reward Claimed!')
     .setColor(0x4CAF50)
     .setDescription(`You received **${formatCoins(reward)}**!`)
     .addFields(
-      { name: 'Base Reward', value: formatCoins(50), inline: true },
+      { name: 'Base Reward', value: formatCoins(25), inline: true },
       { name: 'Streak Bonus', value: `+${formatCoins(streakBonus)}`, inline: true },
       { name: 'Current Streak', value: `${streak} days`, inline: true },
       { name: 'New Balance', value: formatCoins(user.balance), inline: false }

@@ -10,15 +10,15 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption(option =>
     option.setName('bet')
       .setDescription('Amount to bet')
-      .setMinValue(10)
-      .setMaxValue(500)
+      .setMinValue(5)
+      .setMaxValue(75)
       .setRequired(true));
 
 export async function execute(interaction) {
   const bet = interaction.options.getInteger('bet');
   const user = getUser(interaction.user.id);
 
-  const cooldown = checkCooldown(interaction.user.id, 'highlow', 10000);
+  const cooldown = checkCooldown(interaction.user.id, 'highlow', 35000);
   if (!cooldown.canPlay) {
     return interaction.reply({
       embeds: [errorEmbed('Cooldown', `Wait **${cooldown.remaining}s** before playing again.`)],
@@ -152,7 +152,7 @@ export async function handleButton(interaction) {
   }
 
   game.streak++;
-  game.multiplier = Math.min(1 + (game.streak * 0.5), 10);
+  game.multiplier = Math.min(1 + (game.streak * 0.25), 4);
   game.currentNumber = newNumber;
 
   const row = new ActionRowBuilder()

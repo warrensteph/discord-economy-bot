@@ -149,8 +149,8 @@ export function claimDaily(userId) {
     user.dailyStreak = 1;
   }
   
-  const baseReward = 50;
-  const streakBonus = Math.min(user.dailyStreak * 10, 100);
+  const baseReward = 25;
+  const streakBonus = Math.min(user.dailyStreak * 5, 50);
   const reward = baseReward + streakBonus;
   
   user.lastDaily = now;
@@ -181,12 +181,66 @@ export function setCooldown(userId, game) {
 
 const defaultShop = {
   roles: [
-    { id: 'role_strawberry_elephant', name: 'Strawberry Elephant', description: 'A sweet elephant role', price: 500, type: 'role', rarity: 'uncommon', roleId: '1446495830965096591' },
-    { id: 'role_dragon_cannelloli', name: 'Dragon Cannelloli', description: 'A delicious dragon role', price: 1000, type: 'role', rarity: 'rare', roleId: '1446495803056197833' },
-    { id: 'role_los_mobilis', name: 'Los Mobilis', description: 'The mobile legends', price: 1500, type: 'role', rarity: 'rare', roleId: '1446495771913617498' },
-    { id: 'role_tortugini_dragonfrutini', name: 'Tortugini Dragonfrutini', description: 'Turtle dragon fruit fusion', price: 2500, type: 'role', rarity: 'epic', roleId: '1446495739147452597' },
-    { id: 'role_cocofanto_elefanto', name: 'Cocofanto Elefanto', description: 'Coconut elephant vibes', price: 4000, type: 'role', rarity: 'epic', roleId: '1446495693848969392' },
-    { id: 'role_noobini_pizzanini', name: 'Noobini Pizzanini', description: 'Pizza noob supreme', price: 250, type: 'role', rarity: 'common', roleId: '1446495657639809207' }
+    { 
+      id: 'role_strawberry_elephant', 
+      name: 'Strawberry Elephant', 
+      description: 'A sweet elephant role - Top Tier Reward!', 
+      price: 10000, 
+      type: 'role', 
+      rarity: 'legendary', 
+      roleId: '1446495830965096591', 
+      permissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'USE_EXTERNAL_EMOJIS', 'ADD_REACTIONS', 'USE_EXTERNAL_STICKERS', 'CREATE_PUBLIC_THREADS', 'CREATE_PRIVATE_THREADS', 'MENTION_EVERYONE', 'CHANGE_NICKNAME'] 
+    },
+    { 
+      id: 'role_dragon_cannelloli', 
+      name: 'Dragon Cannelloli', 
+      description: 'A delicious dragon role - Elite Reward!', 
+      price: 5000, 
+      type: 'role', 
+      rarity: 'epic', 
+      roleId: '1446495803056197833', 
+      permissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'USE_EXTERNAL_EMOJIS', 'ADD_REACTIONS', 'USE_EXTERNAL_STICKERS', 'CREATE_PUBLIC_THREADS', 'CHANGE_NICKNAME'] 
+    },
+    { 
+      id: 'role_los_mobilis', 
+      name: 'Los Mobilis', 
+      description: 'The mobile legends - Premium Reward!', 
+      price: 3500, 
+      type: 'role', 
+      rarity: 'epic', 
+      roleId: '1446495771913617498', 
+      permissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_STICKERS', 'CHANGE_NICKNAME'] 
+    },
+    { 
+      id: 'role_tortugini_dragonfrutini', 
+      name: 'Tortuggini', 
+      description: 'Turtle dragon fruit fusion - Advanced Reward!', 
+      price: 3000, 
+      type: 'role', 
+      rarity: 'rare', 
+      roleId: '1446495739147452597', 
+      permissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS'] 
+    },
+    { 
+      id: 'role_cocofanto_elefanto', 
+      name: 'Cocofanto', 
+      description: 'Coconut elephant vibes - Intermediate Reward!', 
+      price: 2500, 
+      type: 'role', 
+      rarity: 'rare', 
+      roleId: '1446495693848969392', 
+      permissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS'] 
+    },
+    { 
+      id: 'role_noobini_pizzanini', 
+      name: 'Noobini', 
+      description: 'Pizza noob supreme - Starter Reward!', 
+      price: 2000, 
+      type: 'role', 
+      rarity: 'uncommon', 
+      roleId: '1446495657639809207', 
+      permissions: ['SEND_MESSAGES', 'ADD_REACTIONS', 'CHANGE_NICKNAME'] 
+    }
   ],
   items: [
     { id: 'item_lucky_coin', name: 'Lucky Coin', description: '+10% win chance for 1 hour', price: 200, type: 'consumable', rarity: 'uncommon' },
@@ -207,6 +261,36 @@ export function getShopItems() {
 export function getShopItem(itemId) {
   const shop = getShopItems();
   return [...shop.roles, ...shop.items].find(i => i.id === itemId);
+}
+
+export function addShopRole(roleData) {
+  const shop = loadJSON(SHOP_FILE, defaultShop);
+  const existingIndex = shop.roles.findIndex(r => r.id === roleData.id || r.roleId === roleData.roleId);
+  if (existingIndex !== -1) {
+    shop.roles[existingIndex] = roleData;
+  } else {
+    shop.roles.push(roleData);
+  }
+  saveJSON(SHOP_FILE, shop);
+  return roleData;
+}
+
+export function removeShopRole(roleId) {
+  const shop = loadJSON(SHOP_FILE, defaultShop);
+  const index = shop.roles.findIndex(r => r.id === roleId || r.roleId === roleId);
+  if (index === -1) return null;
+  const removed = shop.roles.splice(index, 1)[0];
+  saveJSON(SHOP_FILE, shop);
+  return removed;
+}
+
+export function updateShopRole(roleId, updates) {
+  const shop = loadJSON(SHOP_FILE, defaultShop);
+  const index = shop.roles.findIndex(r => r.id === roleId || r.roleId === roleId);
+  if (index === -1) return null;
+  shop.roles[index] = { ...shop.roles[index], ...updates };
+  saveJSON(SHOP_FILE, shop);
+  return shop.roles[index];
 }
 
 export const RARITY_COLORS = {

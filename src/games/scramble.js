@@ -31,15 +31,15 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption(option =>
     option.setName('bet')
       .setDescription('Amount to bet')
-      .setMinValue(10)
-      .setMaxValue(300)
+      .setMinValue(5)
+      .setMaxValue(100)
       .setRequired(true));
 
 export async function execute(interaction) {
   const bet = interaction.options.getInteger('bet');
   const user = getUser(interaction.user.id);
 
-  const cooldown = checkCooldown(interaction.user.id, 'scramble', 15000);
+  const cooldown = checkCooldown(interaction.user.id, 'scramble', 45000);
   if (!cooldown.canPlay) {
     return interaction.reply({
       embeds: [errorEmbed('Cooldown', `Wait **${cooldown.remaining}s** before playing again.`)],
@@ -92,8 +92,8 @@ export async function execute(interaction) {
       collector.stop('won');
       setCooldown(interaction.user.id, 'scramble');
       
-      const winnings = game.bet * 2;
-      addBalance(interaction.user.id, game.bet);
+      const winnings = Math.floor(game.bet * 1.5);
+      addBalance(interaction.user.id, Math.floor(game.bet * 0.5));
       updateGameStats(interaction.user.id, true);
       
       const winEmbed = new EmbedBuilder()

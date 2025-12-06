@@ -10,15 +10,15 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption(option =>
     option.setName('bet')
       .setDescription('Amount to bet')
-      .setMinValue(10)
-      .setMaxValue(500)
+      .setMinValue(5)
+      .setMaxValue(75)
       .setRequired(true));
 
 export async function execute(interaction) {
   const bet = interaction.options.getInteger('bet');
   const user = getUser(interaction.user.id);
 
-  const cooldown = checkCooldown(interaction.user.id, 'guess', 10000);
+  const cooldown = checkCooldown(interaction.user.id, 'guess', 35000);
   if (!cooldown.canPlay) {
     return interaction.reply({
       embeds: [errorEmbed('Cooldown', `Wait **${cooldown.remaining}s** before playing again.`)],
@@ -60,7 +60,7 @@ export async function execute(interaction) {
 
   const embed = new EmbedBuilder()
     .setTitle('Number Guessing Game')
-    .setDescription(`Guess a number between **1** and **10**!\n\nBet: **${formatCoins(bet)}**\nAttempts remaining: **3**\n\nCorrect guess wins **5x** your bet!`)
+    .setDescription(`Guess a number between **1** and **10**!\n\nBet: **${formatCoins(bet)}**\nAttempts remaining: **3**\n\nCorrect guess wins **3x** your bet!`)
     .setColor(0x5865F2)
     .setTimestamp();
 
@@ -100,7 +100,7 @@ export async function handleButton(interaction) {
     activeGames.delete(realGameId);
     setCooldown(interaction.user.id, 'guess');
     
-    const winnings = game.bet * 5;
+    const winnings = game.bet * 3;
     addBalance(interaction.user.id, winnings - game.bet);
     updateGameStats(interaction.user.id, true);
 

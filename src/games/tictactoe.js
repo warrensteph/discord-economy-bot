@@ -72,15 +72,15 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption(option =>
     option.setName('bet')
       .setDescription('Amount to bet')
-      .setMinValue(10)
-      .setMaxValue(500)
+      .setMinValue(5)
+      .setMaxValue(75)
       .setRequired(true));
 
 export async function execute(interaction) {
   const bet = interaction.options.getInteger('bet');
   const user = getUser(interaction.user.id);
 
-  const cooldown = checkCooldown(interaction.user.id, 'tictactoe', 20000);
+  const cooldown = checkCooldown(interaction.user.id, 'tictactoe', 45000);
   if (!cooldown.canPlay) {
     return interaction.reply({
       embeds: [errorEmbed('Cooldown', `Wait **${cooldown.remaining}s** before playing again.`)],

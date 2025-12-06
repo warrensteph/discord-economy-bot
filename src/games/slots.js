@@ -21,19 +21,19 @@ function calculateWinnings(symbols, bet) {
   
   if (s1 === s2 && s2 === s3) {
     const multipliers = {
-      '': 50,
-      '': 25,
       '': 15,
-      '': 10,
       '': 8,
       '': 5,
-      '': 3
+      '': 4,
+      '': 3,
+      '': 2.5,
+      '': 2
     };
-    return bet * (multipliers[s1] || 3);
+    return Math.floor(bet * (multipliers[s1] || 2));
   }
   
   if (s1 === s2 || s2 === s3 || s1 === s3) {
-    return Math.floor(bet * 1.5);
+    return Math.floor(bet * 1.2);
   }
   
   return 0;
@@ -45,15 +45,15 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption(option =>
     option.setName('bet')
       .setDescription('Amount to bet')
-      .setMinValue(10)
-      .setMaxValue(500)
+      .setMinValue(5)
+      .setMaxValue(100)
       .setRequired(true));
 
 export async function execute(interaction) {
   const bet = interaction.options.getInteger('bet');
   const user = getUser(interaction.user.id);
 
-  const cooldown = checkCooldown(interaction.user.id, 'slots', 15000);
+  const cooldown = checkCooldown(interaction.user.id, 'slots', 45000);
   if (!cooldown.canPlay) {
     return interaction.reply({
       embeds: [errorEmbed('Cooldown', `Wait **${cooldown.remaining}s** before playing again.`)],

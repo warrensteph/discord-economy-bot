@@ -39,15 +39,15 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption(option =>
     option.setName('bet')
       .setDescription('Amount to bet')
-      .setMinValue(10)
-      .setMaxValue(300)
+      .setMinValue(5)
+      .setMaxValue(100)
       .setRequired(true));
 
 export async function execute(interaction) {
   const bet = interaction.options.getInteger('bet');
   const user = getUser(interaction.user.id);
 
-  const cooldown = checkCooldown(interaction.user.id, 'memory', 30000);
+  const cooldown = checkCooldown(interaction.user.id, 'memory', 60000);
   if (!cooldown.canPlay) {
     return interaction.reply({
       embeds: [errorEmbed('Cooldown', `Wait **${cooldown.remaining}s** before playing again.`)],
@@ -128,14 +128,14 @@ export async function handleButton(interaction) {
         activeGames.delete(gameId);
         setCooldown(interaction.user.id, 'memory');
         
-        const bonus = Math.max(0, (15 - game.moves) * 10);
-        const winnings = game.bet * 2 + bonus;
+        const bonus = Math.max(0, (15 - game.moves) * 3);
+        const winnings = Math.floor(game.bet * 1.5) + bonus;
         addBalance(interaction.user.id, winnings - game.bet);
         updateGameStats(interaction.user.id, true);
         
         const embed = new EmbedBuilder()
           .setTitle('You Win!')
-          .setDescription(`You found all pairs in **${game.moves}** moves!\n\nWinnings: **${formatCoins(game.bet * 2)}**\nSpeed Bonus: **${formatCoins(bonus)}**\nTotal: **${formatCoins(winnings)}**`)
+          .setDescription(`You found all pairs in **${game.moves}** moves!\n\nWinnings: **${formatCoins(Math.floor(game.bet * 1.5))}**\nSpeed Bonus: **${formatCoins(bonus)}**\nTotal: **${formatCoins(winnings)}**`)
           .setColor(0x4CAF50)
           .setTimestamp();
         
